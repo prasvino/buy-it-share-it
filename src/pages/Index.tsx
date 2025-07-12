@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import PostCard from "../components/PostCard";
 import UserProfile from "../components/UserProfile";
 import CreatePost from "../components/CreatePost";
-import { TrendingUp, ShoppingBag, Zap, Star } from "lucide-react";
+import TrendingSidebar from "../components/TrendingSidebar";
 
 const Index = () => {
   const [posts] = useState([
@@ -70,99 +70,59 @@ const Index = () => {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-x-hidden">
+      {/* Floating background elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-pink-200/20 to-orange-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           {/* Left Sidebar - User Profile */}
-          <div className="lg:col-span-3">
-            <div className="sticky top-24">
+          <div className="xl:col-span-3 order-2 xl:order-1">
+            <div className="sticky top-28">
               <UserProfile />
             </div>
           </div>
           
           {/* Main Feed */}
-          <div className="lg:col-span-6">
-            <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm mb-6">
+          <div className="xl:col-span-6 order-1 xl:order-2">
+            {/* Create Post - Floating Style */}
+            <div className="mb-8 transform hover:scale-[1.02] transition-all duration-300">
               <CreatePost />
             </div>
             
+            {/* Posts Feed */}
             <div className="space-y-6">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+              {posts.map((post, index) => (
+                <div 
+                  key={post.id} 
+                  className="transform hover:scale-[1.02] transition-all duration-300"
+                  style={{
+                    animationDelay: `${index * 100}ms`
+                  }}
+                >
+                  <PostCard post={post} />
+                </div>
               ))}
+            </div>
+
+            {/* Load More Button */}
+            <div className="flex justify-center mt-12">
+              <button className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10">Load More Posts</span>
+              </button>
             </div>
           </div>
           
           {/* Right Sidebar - Trending */}
-          <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-6">
-              {/* Trending Purchases */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-orange-500" />
-                    Trending
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
-                        📱
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">iPhone 15 Pro</p>
-                        <p className="text-xs text-gray-500">2,341 purchases today</p>
-                      </div>
-                      <Star className="w-4 h-4 text-yellow-500" />
-                    </div>
-                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
-                        👟
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">Nike Air Max</p>
-                        <p className="text-xs text-gray-500">1,892 purchases</p>
-                      </div>
-                      <TrendingUp className="w-4 h-4 text-green-500" />
-                    </div>
-                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
-                        💻
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">MacBook Pro</p>
-                        <p className="text-xs text-gray-500">1,456 purchases</p>
-                      </div>
-                      <Zap className="w-4 h-4 text-purple-500" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm">
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <ShoppingBag className="w-5 h-5 mr-2 text-blue-500" />
-                    Today's Stats
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl">
-                      <span className="text-sm text-gray-700">Total Posts</span>
-                      <span className="font-bold text-blue-700">12.5k</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl">
-                      <span className="text-sm text-gray-700">Money Spent</span>
-                      <span className="font-bold text-green-700">$2.1M</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
-                      <span className="text-sm text-gray-700">Active Users</span>
-                      <span className="font-bold text-purple-700">8.2k</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="xl:col-span-3 order-3">
+            <div className="sticky top-28">
+              <TrendingSidebar />
             </div>
           </div>
         </div>
