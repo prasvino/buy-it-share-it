@@ -1,5 +1,5 @@
 
-import { Heart, MessageCircle, Repeat, Share, MoreHorizontal, ExternalLink, Zap, Star, Award } from "lucide-react";
+import { Heart, MessageCircle, Repeat, Share, MoreHorizontal, ExternalLink, Zap, Star, Award, Play } from "lucide-react";
 import { useState } from "react";
 
 interface Post {
@@ -17,6 +17,7 @@ interface Post {
   };
   price: string;
   media?: string;
+  mediaType?: "image" | "video";
   timestamp: string;
   likes: number;
   comments: number;
@@ -91,7 +92,7 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="mb-6">
           <p className="text-gray-800 leading-relaxed mb-6 text-base font-medium">{post.content}</p>
           
-          {/* Enhanced Media */}
+          {/* Enhanced Media with Video Support */}
           {post.media && (
             <div className="relative rounded-3xl overflow-hidden mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-500">
               <img
@@ -99,6 +100,24 @@ const PostCard = ({ post }: PostCardProps) => {
                 alt="Purchase"
                 className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700"
               />
+              
+              {/* Video Play Button Overlay */}
+              {post.mediaType === "video" && (
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 cursor-pointer group/play">
+                    <Play className="w-8 h-8 text-gray-800 ml-1 group-hover/play:text-blue-600 transition-colors duration-300" fill="currentColor" />
+                  </div>
+                </div>
+              )}
+              
+              {/* Video Badge */}
+              {post.mediaType === "video" && (
+                <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                  <Play className="w-3 h-3" fill="currentColor" />
+                  <span>Video</span>
+                </div>
+              )}
+              
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           )}

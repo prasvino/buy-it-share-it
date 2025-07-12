@@ -23,6 +23,7 @@ const Index = () => {
       },
       price: "$999",
       media: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&h=300&fit=crop",
+      mediaType: "image",
       timestamp: "2h",
       likes: 24,
       comments: 8,
@@ -30,6 +31,27 @@ const Index = () => {
     },
     {
       id: 2,
+      user: {
+        name: "Tech Reviewer Mike",
+        username: "@techreviewmike",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
+      },
+      content: "Unboxing my new MacBook Pro from Apple Store! The M3 chip is absolutely insane for video editing 🚀💻",
+      platform: {
+        name: "Apple Store",
+        icon: "🍎",
+        color: "bg-gray-700"
+      },
+      price: "$2,499",
+      media: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&h=300&fit=crop",
+      mediaType: "video",
+      timestamp: "3h",
+      likes: 156,
+      comments: 23,
+      reposts: 18
+    },
+    {
+      id: 3,
       user: {
         name: "Mike Chen",
         username: "@miketech",
@@ -43,13 +65,35 @@ const Index = () => {
       },
       price: "$79.99",
       media: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&h=300&fit=crop",
+      mediaType: "image",
       timestamp: "4h",
       likes: 18,
       comments: 5,
       reposts: 2
     },
     {
-      id: 3,
+      id: 4,
+      user: {
+        name: "Gaming Setup Anna",
+        username: "@gaminganna",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
+      },
+      content: "My new gaming setup is complete! This RTX 4090 from Best Buy is handling everything I throw at it 🎮⚡",
+      platform: {
+        name: "Best Buy",
+        icon: "💻",
+        color: "bg-blue-600"
+      },
+      price: "$1,599",
+      media: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&h=300&fit=crop",
+      mediaType: "video",
+      timestamp: "5h",
+      likes: 89,
+      comments: 15,
+      reposts: 12
+    },
+    {
+      id: 5,
       user: {
         name: "Emma Rodriguez",
         username: "@emmar",
@@ -66,6 +110,27 @@ const Index = () => {
       likes: 31,
       comments: 12,
       reposts: 7
+    },
+    {
+      id: 6,
+      user: {
+        name: "Fitness Journey Alex",
+        username: "@fitnessalex",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face"
+      },
+      content: "Just got this home gym equipment from Amazon! Time to get those gains 💪 Watch me set it up!",
+      platform: {
+        name: "Amazon",
+        icon: "🛒",
+        color: "bg-orange-500"
+      },
+      price: "$849",
+      media: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=500&h=300&fit=crop",
+      mediaType: "video",
+      timestamp: "8h",
+      likes: 67,
+      comments: 19,
+      reposts: 8
     }
   ]);
 
