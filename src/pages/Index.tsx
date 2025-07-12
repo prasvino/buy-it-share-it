@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import PostCard from "../components/PostCard";
 import UserProfile from "../components/UserProfile";
 import CreatePost from "../components/CreatePost";
+import { TrendingUp, ShoppingBag, Zap, Star } from "lucide-react";
 
 const Index = () => {
   const [posts] = useState([
@@ -69,59 +70,96 @@ const Index = () => {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       <Header />
       
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Sidebar - User Profile */}
-          <div className="lg:col-span-1">
-            <UserProfile />
+          <div className="lg:col-span-3">
+            <div className="sticky top-24">
+              <UserProfile />
+            </div>
           </div>
           
           {/* Main Feed */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="lg:col-span-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm mb-6">
               <CreatePost />
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {posts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
             </div>
           </div>
           
-          {/* Right Sidebar - Trending/Suggestions */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Trending Purchases</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    📱
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">iPhone 15 Pro</p>
-                    <p className="text-xs text-gray-500">2,341 purchases</p>
+          {/* Right Sidebar - Trending */}
+          <div className="lg:col-span-3">
+            <div className="sticky top-24 space-y-6">
+              {/* Trending Purchases */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <TrendingUp className="w-5 h-5 mr-2 text-orange-500" />
+                    Trending
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
+                        📱
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">iPhone 15 Pro</p>
+                        <p className="text-xs text-gray-500">2,341 purchases today</p>
+                      </div>
+                      <Star className="w-4 h-4 text-yellow-500" />
+                    </div>
+                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
+                        👟
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">Nike Air Max</p>
+                        <p className="text-xs text-gray-500">1,892 purchases</p>
+                      </div>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                    </div>
+                    <div className="flex items-center space-x-4 p-3 hover:bg-gray-50/70 rounded-2xl transition-colors duration-200 cursor-pointer">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
+                        💻
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">MacBook Pro</p>
+                        <p className="text-xs text-gray-500">1,456 purchases</p>
+                      </div>
+                      <Zap className="w-4 h-4 text-purple-500" />
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    👟
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">Nike Air Max</p>
-                    <p className="text-xs text-gray-500">1,892 purchases</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    💻
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">MacBook Pro</p>
-                    <p className="text-xs text-gray-500">1,456 purchases</p>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-sm">
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <ShoppingBag className="w-5 h-5 mr-2 text-blue-500" />
+                    Today's Stats
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl">
+                      <span className="text-sm text-gray-700">Total Posts</span>
+                      <span className="font-bold text-blue-700">12.5k</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl">
+                      <span className="text-sm text-gray-700">Money Spent</span>
+                      <span className="font-bold text-green-700">$2.1M</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
+                      <span className="text-sm text-gray-700">Active Users</span>
+                      <span className="font-bold text-purple-700">8.2k</span>
+                    </div>
                   </div>
                 </div>
               </div>
