@@ -1,5 +1,5 @@
 
-import { TrendingUp, ShoppingBag, Zap, Star, Fire, Award, Crown, Sparkles } from "lucide-react";
+import { TrendingUp, ShoppingBag, Zap, Star, Flame, Award, Crown, Sparkles } from "lucide-react";
 
 const TrendingSidebar = () => {
   return (
@@ -9,7 +9,7 @@ const TrendingSidebar = () => {
         <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 p-6 border-b border-gray-100/50">
           <h3 className="text-xl font-bold text-gray-900 flex items-center">
             <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mr-3">
-              <Fire className="w-4 h-4 text-white" />
+              <Flame className="w-4 h-4 text-white" />
             </div>
             What's Hot
             <Sparkles className="w-4 h-4 ml-2 text-yellow-500 animate-pulse" />
