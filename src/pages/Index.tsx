@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "../components/Header";
 import PostCard from "../components/PostCard";
@@ -23,7 +22,7 @@ const Index = () => {
       },
       price: "$999",
       media: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&h=300&fit=crop",
-      mediaType: "image",
+      mediaType: "image" as const,
       timestamp: "2h",
       likes: 24,
       comments: 8,
@@ -44,7 +43,7 @@ const Index = () => {
       },
       price: "$2,499",
       media: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&h=300&fit=crop",
-      mediaType: "video",
+      mediaType: "video" as const,
       timestamp: "3h",
       likes: 156,
       comments: 23,
@@ -65,7 +64,7 @@ const Index = () => {
       },
       price: "$79.99",
       media: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&h=300&fit=crop",
-      mediaType: "image",
+      mediaType: "image" as const,
       timestamp: "4h",
       likes: 18,
       comments: 5,
@@ -86,7 +85,7 @@ const Index = () => {
       },
       price: "$1,599",
       media: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&h=300&fit=crop",
-      mediaType: "video",
+      mediaType: "video" as const,
       timestamp: "5h",
       likes: 89,
       comments: 15,
@@ -126,11 +125,53 @@ const Index = () => {
       },
       price: "$849",
       media: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=500&h=300&fit=crop",
-      mediaType: "video",
+      mediaType: "video" as const,
       timestamp: "8h",
       likes: 67,
       comments: 19,
       reposts: 8
+    },
+    {
+      id: 7,
+      user: {
+        name: "Fashion Forward Lisa",
+        username: "@fashionlisa",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
+      },
+      content: "Trying on my new Nike sneakers from Foot Locker! Perfect for my morning runs 👟✨",
+      platform: {
+        name: "Foot Locker",
+        icon: "👟",
+        color: "bg-black"
+      },
+      price: "$149",
+      media: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=300&fit=crop",
+      mediaType: "video" as const,
+      timestamp: "1d",
+      likes: 45,
+      comments: 9,
+      reposts: 6
+    },
+    {
+      id: 8,
+      user: {
+        name: "Chef Marcus",
+        username: "@chefmarcus",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
+      },
+      content: "Unboxing my new KitchenAid mixer from Williams Sonoma! Time to make some amazing desserts 🍰👨‍🍳",
+      platform: {
+        name: "Williams Sonoma",
+        icon: "🍽️",
+        color: "bg-emerald-600"
+      },
+      price: "$399",
+      media: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=300&fit=crop",
+      mediaType: "video" as const,
+      timestamp: "1d",
+      likes: 92,
+      comments: 27,
+      reposts: 14
     }
   ]);
 
