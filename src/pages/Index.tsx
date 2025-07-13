@@ -10,7 +10,7 @@ const Index = () => {
     {
       id: 1,
       user: {
-        name: "Sarah Johnson",
+        name: "Sarah",
         username: "@sarahj",
         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=50&h=50&fit=crop&crop=face"
       },
@@ -31,7 +31,7 @@ const Index = () => {
     {
       id: 2,
       user: {
-        name: "Tech Reviewer Mike",
+        name: "Mike",
         username: "@techreviewmike",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
@@ -52,7 +52,7 @@ const Index = () => {
     {
       id: 3,
       user: {
-        name: "Mike Chen",
+        name: "Mike",
         username: "@miketech",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
@@ -73,7 +73,7 @@ const Index = () => {
     {
       id: 4,
       user: {
-        name: "Gaming Setup Anna",
+        name: "Anna",
         username: "@gaminganna",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
@@ -94,7 +94,7 @@ const Index = () => {
     {
       id: 5,
       user: {
-        name: "Emma Rodriguez",
+        name: "Emma",
         username: "@emmar",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
@@ -113,7 +113,7 @@ const Index = () => {
     {
       id: 6,
       user: {
-        name: "Fitness Journey Alex",
+        name: "Alex",
         username: "@fitnessalex",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face"
       },
@@ -134,7 +134,7 @@ const Index = () => {
     {
       id: 7,
       user: {
-        name: "Fashion Forward Lisa",
+        name: "Lisa",
         username: "@fashionlisa",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
@@ -155,7 +155,7 @@ const Index = () => {
     {
       id: 8,
       user: {
-        name: "Chef Marcus",
+        name: "Marcus",
         username: "@chefmarcus",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
