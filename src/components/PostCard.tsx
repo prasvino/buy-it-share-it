@@ -6,7 +6,6 @@ interface Post {
   id: number;
   user: {
     name: string;
-    username: string;
     avatar: string;
   };
   content: string;
@@ -75,10 +74,6 @@ const PostCard = ({ post }: PostCardProps) => {
                   <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
                   <span className="text-sm text-gray-500 font-medium">{post.timestamp}</span>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <p className="text-sm text-gray-500">{post.user.username}</p>
-                <Award className="w-3 h-3 text-blue-500" />
               </div>
             </div>
           </div>

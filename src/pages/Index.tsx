@@ -10,8 +10,7 @@ const Index = () => {
     {
       id: 1,
       user: {
-        name: "Sarah",
-        username: "@sarahj",
+        name: "Sarah Johnson",
         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=50&h=50&fit=crop&crop=face"
       },
       content: "Just got the new iPhone 15 Pro from Amazon for $999! The camera quality is absolutely incredible 📸✨",
@@ -31,8 +30,7 @@ const Index = () => {
     {
       id: 2,
       user: {
-        name: "Mike",
-        username: "@techreviewmike",
+        name: "Mike Chen",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
       content: "Unboxing my new MacBook Pro from Apple Store! The M3 chip is absolutely insane for video editing 🚀💻",
@@ -52,8 +50,7 @@ const Index = () => {
     {
       id: 3,
       user: {
-        name: "Mike",
-        username: "@miketech",
+        name: "Mike Rodriguez",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
       content: "Found this amazing coffee maker at Target! Perfect morning brew every time ☕️",
@@ -73,8 +70,7 @@ const Index = () => {
     {
       id: 4,
       user: {
-        name: "Anna",
-        username: "@gaminganna",
+        name: "Emma Wilson",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
       content: "My new gaming setup is complete! This RTX 4090 from Best Buy is handling everything I throw at it 🎮⚡",
@@ -94,8 +90,7 @@ const Index = () => {
     {
       id: 5,
       user: {
-        name: "Emma",
-        username: "@emmar",
+        name: "Emma Davis",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
       content: "Best investment for my home office! This ergonomic chair from Wayfair is a game changer 💺",
@@ -113,8 +108,7 @@ const Index = () => {
     {
       id: 6,
       user: {
-        name: "Alex",
-        username: "@fitnessalex",
+        name: "Alex Martinez",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face"
       },
       content: "Just got this home gym equipment from Amazon! Time to get those gains 💪 Watch me set it up!",
@@ -134,8 +128,7 @@ const Index = () => {
     {
       id: 7,
       user: {
-        name: "Lisa",
-        username: "@fashionlisa",
+        name: "Lisa Thompson",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
       },
       content: "Trying on my new Nike sneakers from Foot Locker! Perfect for my morning runs 👟✨",
@@ -155,8 +148,7 @@ const Index = () => {
     {
       id: 8,
       user: {
-        name: "Marcus",
-        username: "@chefmarcus",
+        name: "Marcus Williams",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
       },
       content: "Unboxing my new KitchenAid mixer from Williams Sonoma! Time to make some amazing desserts 🍰👨‍🍳",
