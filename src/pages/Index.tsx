@@ -2,7 +2,7 @@ import { useState } from "react";
 import Header from "../components/Header";
 import PostCard from "../components/PostCard";
 import UserProfile from "../components/UserProfile";
-import CreatePost from "../components/CreatePost";
+import CreatePostFAB from "../components/CreatePostFAB";
 import TrendingSidebar from "../components/TrendingSidebar";
 
 const Index = () => {
@@ -188,10 +188,6 @@ const Index = () => {
           
           {/* Main Feed */}
           <div className="xl:col-span-6 order-1 xl:order-2">
-            {/* Create Post - Floating Style */}
-            <div className="mb-8 transform hover:scale-[1.02] transition-all duration-300">
-              <CreatePost />
-            </div>
             
             {/* Posts Feed */}
             <div className="space-y-6">
@@ -224,6 +220,7 @@ const Index = () => {
             </div>
           </div>
         </div>
+        <CreatePostFAB />
       </div>
     </div>
   );
