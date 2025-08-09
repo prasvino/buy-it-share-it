@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -27,7 +27,7 @@ const CreatePostFAB = () => {
         aria-label="Create a post"
         className="h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-2xl hover:shadow-blue-500/25"
       >
-        <Plus className="h-6 w-6" />
+        <Edit3 className="h-6 w-6" />
       </Button>
     </div>
   );
