@@ -21,7 +21,7 @@ const CreatePostFAB = () => {
   const isMobile = useIsMobile();
 
   const FabButton = (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed top-6 right-6 z-50">
       <Button
         onClick={() => setOpen(true)}
         aria-label="Create a post"
