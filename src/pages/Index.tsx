@@ -188,7 +188,7 @@ const Index = () => {
           </div>
           
           {/* Main Feed */}
-          <div className="xl:col-span-6 order-1 xl:order-2 pb-20 md:pb-8">
+          <div className="xl:col-span-6 order-1 xl:order-2 pt-20 md:pt-8 pb-8">
             
             {/* Posts Feed */}
             <div className="space-y-6">
