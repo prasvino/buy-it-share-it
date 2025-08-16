@@ -33,7 +33,7 @@ const MobileBottomNav = () => {
               <Search className="h-5 w-5" />
             </Button>
 
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mt-2">
               <span className="text-white text-xl font-bold">+</span>
             </div>
 
@@ -110,11 +110,13 @@ const MobileBottomNav = () => {
 
       {/* Stats Sheet */}
       <Sheet open={activeSheet === 'stats'} onOpenChange={(open) => setActiveSheet(open ? 'stats' : null)}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl overflow-hidden">
-          <div className="h-full flex flex-col">
-            <h3 className="text-xl font-bold py-4 border-b">Live Platform Stats</h3>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl flex flex-col">
+          <div className="flex-shrink-0 p-4 border-b">
+            <h3 className="text-xl font-bold">Live Platform Stats</h3>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4 rounded-xl border border-blue-200/20">
                   <div className="flex items-center gap-2 mb-2">
@@ -153,14 +155,27 @@ const MobileBottomNav = () => {
                 </div>
               </div>
               
-              {/* Additional stats sections for scrolling demo */}
+              {/* Additional stats sections for scrolling */}
               <div className="space-y-4">
                 <h4 className="text-lg font-semibold">Recent Activity</h4>
                 <div className="space-y-3">
+                  {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                    <div key={i} className="bg-muted/50 p-4 rounded-lg">
+                      <div className="text-sm font-medium">Purchase Activity {i}</div>
+                      <div className="text-xs text-muted-foreground">User made a purchase worth $199 from Amazon</div>
+                      <div className="text-xs text-muted-foreground mt-1">2 minutes ago</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold">Top Products</h4>
+                <div className="space-y-3">
                   {[1,2,3,4,5].map(i => (
-                    <div key={i} className="bg-muted/50 p-3 rounded-lg">
-                      <div className="text-sm font-medium">Activity {i}</div>
-                      <div className="text-xs text-muted-foreground">Sample activity description</div>
+                    <div key={i} className="bg-muted/50 p-4 rounded-lg">
+                      <div className="text-sm font-medium">Product {i}</div>
+                      <div className="text-xs text-muted-foreground">Popular item this week</div>
                     </div>
                   ))}
                 </div>
