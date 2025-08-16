@@ -6,9 +6,9 @@ import UserProfile from "./UserProfile";
 import TrendingSidebar from "./TrendingSidebar";
 
 const MobileBottomNav = () => {
-  const [activeSheet, setActiveSheet] = useState<'profile' | 'trending' | 'stats' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'profile' | 'trending' | null>(null);
 
-  const handleSheetChange = (type: 'profile' | 'trending' | 'stats' | null) => {
+  const handleSheetChange = (type: 'profile' | 'trending' | null) => {
     setActiveSheet(type);
   };
 
@@ -46,14 +46,6 @@ const MobileBottomNav = () => {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
             </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full"
-              onClick={() => handleSheetChange('stats')}
-            >
-              <BarChart3 className="h-5 w-5" />
-            </Button>
           </div>
 
           {/* Dashboard Icons with proper spacing */}
@@ -92,91 +84,15 @@ const MobileBottomNav = () => {
 
       {/* Trending Sheet */}
       <Sheet open={activeSheet === 'trending'} onOpenChange={(open) => setActiveSheet(open ? 'trending' : null)}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
-          <div className="py-4">
-            <h3 className="text-xl font-bold mb-4">What's Hot</h3>
-            <TrendingSidebar />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Stats Sheet */}
-      <Sheet open={activeSheet === 'stats'} onOpenChange={(open) => setActiveSheet(open ? 'stats' : null)}>
         <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0">
           <div className="flex flex-col h-full">
             <div className="flex-shrink-0 p-4 border-b bg-background">
-              <h3 className="text-xl font-bold">Live Platform Stats</h3>
+              <h3 className="text-xl font-bold">What's Hot</h3>
             </div>
             
             <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4 rounded-xl border border-blue-200/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Activity className="h-5 w-5 text-blue-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Total Posts</span>
-                    </div>
-                    <div className="text-2xl font-bold">24,891</div>
-                    <div className="text-xs text-green-500">+12% today</div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-4 rounded-xl border border-green-200/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShoppingBag className="h-5 w-5 text-green-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Money Spent</span>
-                    </div>
-                    <div className="text-2xl font-bold">$2.4M</div>
-                    <div className="text-xs text-green-500">+8% today</div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-4 rounded-xl border border-green-200/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="h-5 w-5 text-purple-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Active Users</span>
-                    </div>
-                    <div className="text-2xl font-bold">89,234</div>
-                    <div className="text-xs text-green-500">+15% today</div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 p-4 rounded-xl border border-orange-200/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="h-5 w-5 text-orange-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Purchases</span>
-                    </div>
-                    <div className="text-2xl font-bold">3,456</div>
-                    <div className="text-xs text-green-500">+23% today</div>
-                  </div>
-                </div>
-                
-                {/* Recent Activity Section */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold">Recent Activity</h4>
-                  <div className="space-y-3">
-                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(i => (
-                      <div key={i} className="bg-muted/50 p-4 rounded-lg">
-                        <div className="text-sm font-medium">Purchase Activity {i}</div>
-                        <div className="text-xs text-muted-foreground">User made a purchase worth $199 from Amazon</div>
-                        <div className="text-xs text-muted-foreground mt-1">{i} minutes ago</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Top Products Section */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold">Top Products</h4>
-                  <div className="space-y-3">
-                    {[1,2,3,4,5,6,7,8].map(i => (
-                      <div key={i} className="bg-muted/50 p-4 rounded-lg">
-                        <div className="text-sm font-medium">Product {i}</div>
-                        <div className="text-xs text-muted-foreground">Popular item this week - {i * 123} purchases</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bottom padding */}
-                <div className="h-4"></div>
+              <div className="p-4">
+                <TrendingSidebar />
               </div>
             </div>
           </div>
