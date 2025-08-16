@@ -24,7 +24,7 @@ const MobileBottomNav = () => {
           </div>
 
           {/* Center Icons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
@@ -55,33 +55,33 @@ const MobileBottomNav = () => {
             </Button>
           </div>
 
-          {/* Dashboard Menu */}
-          <div className="flex gap-2">
+          {/* Dashboard Icons with proper spacing */}
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="w-10 h-10 rounded-full"
+              className="w-9 h-9 rounded-full"
               onClick={() => handleSheetChange('profile')}
             >
-              <User className="h-5 w-5" />
+              <User className="h-4 w-4" />
             </Button>
             
             <Button
               variant="ghost"
               size="sm"
-              className="w-10 h-10 rounded-full"
+              className="w-9 h-9 rounded-full"
               onClick={() => handleSheetChange('trending')}
             >
-              <TrendingUp className="h-5 w-5" />
+              <TrendingUp className="h-4 w-4" />
             </Button>
             
             <Button
               variant="ghost"
               size="sm"
-              className="w-10 h-10 rounded-full bg-muted/50"
+              className="w-9 h-9 rounded-full bg-muted/50"
               onClick={() => handleSheetChange('stats')}
             >
-              <BarChart3 className="h-5 w-5" />
+              <BarChart3 className="h-4 w-4" />
             </Button>
           </div>
 
@@ -110,11 +110,11 @@ const MobileBottomNav = () => {
 
       {/* Stats Sheet */}
       <Sheet open={activeSheet === 'stats'} onOpenChange={(open) => setActiveSheet(open ? 'stats' : null)}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
-          <div className="py-4">
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold">Live Platform Stats</h3>
-              
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl overflow-hidden">
+          <div className="h-full flex flex-col">
+            <h3 className="text-xl font-bold py-4 border-b">Live Platform Stats</h3>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4 rounded-xl border border-blue-200/20">
                   <div className="flex items-center gap-2 mb-2">
@@ -150,6 +150,19 @@ const MobileBottomNav = () => {
                   </div>
                   <div className="text-2xl font-bold">3,456</div>
                   <div className="text-xs text-green-500">+23% today</div>
+                </div>
+              </div>
+              
+              {/* Additional stats sections for scrolling demo */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold">Recent Activity</h4>
+                <div className="space-y-3">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="bg-muted/50 p-3 rounded-lg">
+                      <div className="text-sm font-medium">Activity {i}</div>
+                      <div className="text-xs text-muted-foreground">Sample activity description</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
