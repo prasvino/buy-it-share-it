@@ -4,6 +4,7 @@ import PostCard from "../components/PostCard";
 import UserProfile from "../components/UserProfile";
 import CreatePostFAB from "../components/CreatePostFAB";
 import TrendingSidebar from "../components/TrendingSidebar";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 const Index = () => {
   const [posts] = useState([
@@ -179,15 +180,15 @@ const Index = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          {/* Left Sidebar - User Profile */}
-          <div className="xl:col-span-3 order-2 xl:order-1">
+          {/* Left Sidebar - User Profile (Hidden on mobile) */}
+          <div className="hidden xl:block xl:col-span-3 order-2 xl:order-1">
             <div className="sticky top-28">
               <UserProfile />
             </div>
           </div>
           
           {/* Main Feed */}
-          <div className="xl:col-span-6 order-1 xl:order-2">
+          <div className="xl:col-span-6 order-1 xl:order-2 pb-20 md:pb-8">
             
             {/* Posts Feed */}
             <div className="space-y-6">
@@ -213,13 +214,16 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Right Sidebar - Trending */}
-          <div className="xl:col-span-3 order-3">
+          {/* Right Sidebar - Trending (Hidden on mobile) */}
+          <div className="hidden xl:block xl:col-span-3 order-3">
             <div className="sticky top-28">
               <TrendingSidebar />
             </div>
           </div>
         </div>
+        
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
         <CreatePostFAB />
       </div>
     </div>
