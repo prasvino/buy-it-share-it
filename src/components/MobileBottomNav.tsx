@@ -51,15 +51,15 @@ const MobileBottomNav = () => {
             </Button>
           </div>
 
-          {/* Menu Button */}
+          {/* Hamburger Menu Button */}
           <Sheet open={activeSheet === 'menu'} onOpenChange={(open) => setActiveSheet(open ? 'menu' : null)}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full bg-muted/50"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] max-w-sm">
