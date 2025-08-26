@@ -1,39 +1,45 @@
 
 import { Heart, MessageCircle, Repeat, Share, MoreHorizontal, ExternalLink, Zap, Star, Award, Play } from "lucide-react";
-import { useState } from "react";
-
-interface Post {
-  id: number;
-  user: {
-    name: string;
-    avatar: string;
-  };
-  content: string;
-  platform: {
-    name: string;
-    icon: string;
-    color: string;
-  };
-  price: string;
-  media?: string;
-  mediaType?: "image" | "video";
-  timestamp: string;
-  likes: number;
-  comments: number;
-  reposts: number;
-}
+import { useLikePost, useRepostPost } from "@/lib/api";
+import { Post } from "@/lib/api";
 
 interface PostCardProps {
   post: Post;
 }
 
 const PostCard = ({ post }: PostCardProps) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
+  const likePostMutation = useLikePost();
+  const repostPostMutation = useRepostPost();
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    likePostMutation.mutate(post.id);
+  };
+
+  const handleRepost = () => {
+    repostPostMutation.mutate(post.id);
+  };
+
+  const formatPrice = (price: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(price);
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      return `${diffInMinutes}m`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d`;
+    }
   };
 
   return (
@@ -68,13 +74,18 @@ const PostCard = ({ post }: PostCardProps) => {
             
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-1">
-                <h3 className="font-bold text-gray-900 text-base group-hover:text-blue-700 transition-colors duration-300">{post.user.name}</h3>
+                <h3 className="font-bold text-gray-900 text-base group-hover:text-blue-700 transition-colors duration-300">
+                  {post.user.name}
+                  {post.user.isVerified && (
+                    <Star className="w-3 h-3 text-yellow-500 fill-current inline ml-1" />
+                  )}
+                </h3>
                 <div className="flex items-center space-x-1">
-                  <Star className="w-3 h-3 text-yellow-500 fill-current" />
                   <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-                  <span className="text-sm text-gray-500 font-medium">{post.timestamp}</span>
+                  <span className="text-sm text-gray-500 font-medium">{formatTimestamp(post.timestamp)}</span>
                 </div>
               </div>
+              <p className="text-sm text-gray-500">@{post.user.username}</p>
             </div>
           </div>
           
@@ -138,7 +149,9 @@ const PostCard = ({ post }: PostCardProps) => {
               </div>
               
               <div className="text-right">
-                <p className="text-2xl font-bold text-green-700 mb-2 transform transition-all duration-300 group-hover:scale-110">{post.price}</p>
+                <p className="text-2xl font-bold text-green-700 mb-2 transform transition-all duration-300 group-hover:scale-110">
+                  {formatPrice(post.price, post.currency)}
+                </p>
                 <button className="flex items-center space-x-1 text-sm text-green-600 hover:text-green-700 bg-green-100/50 hover:bg-green-100 px-3 py-2 rounded-xl transition-all duration-300 group-hover:shadow-md">
                   <ExternalLink className="w-3 h-3" />
                   <span className="font-medium">View Deal</span>
@@ -152,14 +165,15 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="flex items-center justify-between pt-6 border-t border-gray-50">
           <button
             onClick={handleLike}
+            disabled={likePostMutation.isPending}
             className={`flex items-center space-x-3 px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 ${
-              isLiked 
+              post.isLiked 
                 ? 'text-red-500 bg-red-50 hover:bg-red-100 shadow-lg shadow-red-100' 
                 : 'text-gray-500 hover:text-red-500 hover:bg-red-50 hover:shadow-lg hover:shadow-red-100'
             }`}
           >
-            <Heart className={`w-5 h-5 transition-all duration-300 ${isLiked ? 'fill-current scale-125' : 'hover:scale-125'}`} />
-            <span className="font-semibold">{likeCount}</span>
+            <Heart className={`w-5 h-5 transition-all duration-300 ${post.isLiked ? 'fill-current scale-125' : 'hover:scale-125'}`} />
+            <span className="font-semibold">{post.likes}</span>
           </button>
 
           <button className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-100">
@@ -167,8 +181,16 @@ const PostCard = ({ post }: PostCardProps) => {
             <span className="font-semibold">{post.comments}</span>
           </button>
 
-          <button className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-green-500 hover:bg-green-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-100">
-            <Repeat className="w-5 h-5 hover:scale-125 transition-transform duration-300" />
+          <button
+            onClick={handleRepost}
+            disabled={repostPostMutation.isPending}
+            className={`flex items-center space-x-3 px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 ${
+              post.isReposted 
+                ? 'text-green-500 bg-green-50 hover:bg-green-100 shadow-lg shadow-green-100' 
+                : 'text-gray-500 hover:text-green-500 hover:bg-green-50 hover:shadow-lg hover:shadow-green-100'
+            }`}
+          >
+            <Repeat className={`w-5 h-5 hover:scale-125 transition-transform duration-300 ${post.isReposted ? 'fill-current' : ''}`} />
             <span className="font-semibold">{post.reposts}</span>
           </button>
 

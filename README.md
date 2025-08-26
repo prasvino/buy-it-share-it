@@ -36,6 +36,23 @@ npm i
 npm run dev
 ```
 
+## Backend Integration
+
+This frontend application is designed to work with a Java Spring Boot backend. To run the full application:
+
+1. **Ensure your Java backend is running on port 8081**
+2. **Configure environment variables** (optional):
+   - Copy `.env.example` to `.env`
+   - Update the values if your backend runs on different ports
+3. **Start the frontend development server**:
+   ```sh
+   npm run dev
+   ```
+
+The application will automatically connect to the backend API at `http://localhost:8081/api` and WebSocket at `ws://localhost:8081/ws`.
+
+For more details about backend integration, see [BACKEND_INTEGRATION.md](./BACKEND_INTEGRATION.md).
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

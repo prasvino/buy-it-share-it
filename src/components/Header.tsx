@@ -1,10 +1,38 @@
 
 import { useState } from "react";
-import { Search, Bell, MessageCircle, Plus, Sparkles, ShoppingBag, Menu } from "lucide-react";
+import { Search, Bell, MessageCircle, Plus, Sparkles, ShoppingBag, Menu, LogOut, User, Settings } from "lucide-react";
+import { useCurrentUser, useLogout } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { data: currentUser } = useCurrentUser();
+  const logoutMutation = useLogout();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className="bg-white/80 backdrop-blur-2xl border-b border-gray-100/50 sticky top-0 z-50 shadow-lg shadow-gray-100/50">
@@ -74,17 +102,47 @@ const Header = () => {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Profile */}
-            <button className="relative group ml-3">
-              <div className="w-11 h-11 rounded-2xl overflow-hidden border-3 border-transparent bg-gradient-to-r from-blue-500 to-purple-500 p-[2px] transition-all duration-300 group-hover:scale-110">
-                <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
-                  alt="Profile"
-                  className="w-full h-full rounded-xl object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-            </button>
+            {/* Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="relative group ml-3">
+                  <div className="w-11 h-11 rounded-2xl overflow-hidden border-3 border-transparent bg-gradient-to-r from-blue-500 to-purple-500 p-[2px] transition-all duration-300 group-hover:scale-110">
+                    <img
+                      src={currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
+                      alt={currentUser?.name || "Profile"}
+                      className="w-full h-full rounded-xl object-cover"
+                    />
+                  </div>
+                  {currentUser?.isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{currentUser?.name || "User"}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      @{currentUser?.username || "username"}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

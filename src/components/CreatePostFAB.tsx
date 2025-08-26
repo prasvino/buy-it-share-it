@@ -37,23 +37,25 @@ const CreatePostFAB = () => {
       {isMobile ? (
         <Drawer open={open} onOpenChange={setOpen}>
           {FabButton}
-          <DrawerContent>
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader className="flex-shrink-0">
               <DrawerTitle>Create a Post</DrawerTitle>
             </DrawerHeader>
-            <div className="p-4">
-              <CreatePost />
+            <div className="flex-1 overflow-y-auto p-4">
+              <CreatePost onSuccess={() => setOpen(false)} />
             </div>
           </DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           {FabButton}
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Create a Post</DialogTitle>
             </DialogHeader>
-            <CreatePost />
+            <div className="flex-1 overflow-y-auto">
+              <CreatePost onSuccess={() => setOpen(false)} />
+            </div>
           </DialogContent>
         </Dialog>
       )}

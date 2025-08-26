@@ -1,7 +1,81 @@
 
 import { MapPin, Calendar, ExternalLink, Settings, Users, UserPlus, Star, Award, TrendingUp } from "lucide-react";
+import { User } from "@/lib/api";
+import { useFollowUser } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
-const UserProfile = () => {
+interface UserProfileProps {
+  user?: User;
+  username?: string;
+}
+
+const UserProfile = ({ user, username }: UserProfileProps) => {
+  const followUserMutation = useFollowUser();
+  const { toast } = useToast();
+
+  const handleFollow = () => {
+    if (user) {
+      followUserMutation.mutate(user.id, {
+        onSuccess: () => {
+          toast({
+            title: user.followersCount !== undefined && user.followersCount > 0 ? "Unfollowed" : "Followed",
+            description: `You ${user.followersCount !== undefined && user.followersCount > 0 ? 'unfollowed' : 'followed'} ${user.name}`,
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to follow user. Please try again.",
+            variant: "destructive",
+          });
+        },
+      });
+    }
+  };
+
+  const formatJoinedDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long' 
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  if (!user) {
+    return (
+      <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-gray-100/50 shadow-xl shadow-gray-100/50 overflow-hidden">
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-32 w-32 rounded-full mx-auto" />
+          <Skeleton className="h-6 w-3/4 mx-auto" />
+          <Skeleton className="h-4 w-1/2 mx-auto" />
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="text-center">
+              <Skeleton className="h-8 w-8 mx-auto mb-2" />
+              <Skeleton className="h-4 w-16 mx-auto" />
+            </div>
+            <div className="text-center">
+              <Skeleton className="h-8 w-8 mx-auto mb-2" />
+              <Skeleton className="h-4 w-16 mx-auto" />
+            </div>
+            <div className="text-center">
+              <Skeleton className="h-8 w-8 mx-auto mb-2" />
+              <Skeleton className="h-4 w-16 mx-auto" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-gray-100/50 shadow-xl shadow-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:shadow-gray-200/30">
       {/* Enhanced Cover with Floating Elements */}
@@ -16,13 +90,15 @@ const UserProfile = () => {
           <div className="relative">
             <div className="w-20 h-20 rounded-3xl overflow-hidden border-4 border-white shadow-2xl transform transition-all duration-300 hover:scale-110">
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                alt="Profile"
+                src={user.avatar}
+                alt={user.name}
                 className="w-full h-full object-cover"
               />
             </div>
             {/* Status indicator */}
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
+            <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-3 border-white flex items-center justify-center ${
+              user.isOnline ? 'bg-green-500' : 'bg-gray-400'
+            }`}>
               <div className="w-2 h-2 bg-white rounded-full"></div>
             </div>
           </div>
@@ -39,94 +115,145 @@ const UserProfile = () => {
         <div className="mb-6">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-1">Alex Thompson</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center">
+                {user.name}
+                {user.isVerified && (
+                  <Star className="w-4 h-4 ml-1 text-yellow-500 fill-current" />
+                )}
+              </h2>
               <p className="text-sm text-gray-500 flex items-center">
-                @alexthompson
-                <Star className="w-3 h-3 ml-1 text-yellow-500 fill-current" />
+                @{user.username}
+                {user.isOnline && (
+                  <div className="w-2 h-2 bg-green-500 rounded-full ml-2"></div>
+                )}
               </p>
             </div>
-            <button className="group relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl text-sm font-semibold overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 transform hover:scale-105">
+            <Button
+              onClick={handleFollow}
+              disabled={followUserMutation.isPending}
+              className="group relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl text-sm font-semibold overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10 flex items-center space-x-2">
-                <UserPlus className="w-4 h-4" />
-                <span>Follow</span>
+                {followUserMutation.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <UserPlus className="w-4 h-4" />
+                )}
+                <span>
+                  {user.followersCount !== undefined && user.followersCount > 0 ? 'Unfollow' : 'Follow'}
+                </span>
               </div>
-            </button>
+            </Button>
           </div>
 
           {/* Enhanced Bio */}
-          <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-2xl p-4 mb-4 border border-blue-100/50">
-            <p className="text-gray-700 text-sm leading-relaxed mb-2">
-              Tech enthusiast sharing my latest purchases and finds 🛍️ Always hunting for the best deals!
-            </p>
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <span className="flex items-center"><Award className="w-3 h-3 mr-1" /> Top Reviewer</span>
-              <span className="flex items-center"><TrendingUp className="w-3 h-3 mr-1" /> Trendsetter</span>
+          {user.bio && (
+            <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-2xl p-4 mb-4 border border-blue-100/50">
+              <p className="text-gray-700 text-sm leading-relaxed mb-2">{user.bio}</p>
+              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                {user.avgRating && (
+                  <span className="flex items-center">
+                    <Award className="w-3 h-3 mr-1" />
+                    Top Reviewer ⭐ {user.avgRating.toFixed(1)}
+                  </span>
+                )}
+                <span className="flex items-center">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  Trendsetter
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Profile Details with Icons */}
           <div className="space-y-3 mb-6">
-            <div className="flex items-center text-gray-600 text-sm group hover:text-blue-600 transition-colors duration-200">
-              <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center mr-3 group-hover:bg-blue-100 transition-colors duration-200">
-                <MapPin className="w-4 h-4 text-blue-600" />
+            {user.location && (
+              <div className="flex items-center text-gray-600 text-sm group hover:text-blue-600 transition-colors duration-200">
+                <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center mr-3 group-hover:bg-blue-100 transition-colors duration-200">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                </div>
+                <span>{user.location}</span>
               </div>
-              <span>San Francisco, CA</span>
-            </div>
+            )}
+            
             <div className="flex items-center text-gray-600 text-sm group hover:text-green-600 transition-colors duration-200">
               <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center mr-3 group-hover:bg-green-100 transition-colors duration-200">
                 <Calendar className="w-4 h-4 text-green-600" />
               </div>
-              <span>Joined March 2023</span>
+              <span>Joined {formatJoinedDate(user.joinedAt)}</span>
             </div>
-            <div className="flex items-center text-gray-600 text-sm group hover:text-purple-600 transition-colors duration-200">
-              <div className="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center mr-3 group-hover:bg-purple-100 transition-colors duration-200">
-                <ExternalLink className="w-4 h-4 text-purple-600" />
+            
+            {user.website && (
+              <div className="flex items-center text-gray-600 text-sm group hover:text-purple-600 transition-colors duration-200">
+                <div className="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center mr-3 group-hover:bg-purple-100 transition-colors duration-200">
+                  <ExternalLink className="w-4 h-4 text-purple-600" />
+                </div>
+                <a href={user.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  {user.website.replace(/^https?:\/\//, '')}
+                </a>
               </div>
-              <a href="#" className="text-blue-600 hover:underline">alexthompson.com</a>
-            </div>
+            )}
           </div>
 
           {/* Enhanced Stats Grid */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-100/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 group">
-              <div className="text-2xl font-bold text-blue-700 mb-1 group-hover:scale-110 transition-transform duration-300">127</div>
+              <div className="text-2xl font-bold text-blue-700 mb-1 group-hover:scale-110 transition-transform duration-300">
+                {user.postsCount || 0}
+              </div>
               <div className="text-xs text-blue-600 font-medium">Posts</div>
             </div>
+            
             <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 group">
-              <div className="text-2xl font-bold text-green-700 mb-1 group-hover:scale-110 transition-transform duration-300">892</div>
+              <div className="text-2xl font-bold text-green-700 mb-1 group-hover:scale-110 transition-transform duration-300">
+                {user.followingCount || 0}
+              </div>
               <div className="text-xs text-green-600 font-medium">Following</div>
             </div>
+            
             <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 group">
-              <div className="text-2xl font-bold text-purple-700 mb-1 group-hover:scale-110 transition-transform duration-300">1.2K</div>
+              <div className="text-2xl font-bold text-purple-700 mb-1 group-hover:scale-110 transition-transform duration-300">
+                {user.followersCount || 0}
+              </div>
               <div className="text-xs text-purple-600 font-medium">Followers</div>
             </div>
           </div>
         </div>
 
         {/* Enhanced Recent Activity */}
-        <div className="border-t border-gray-100/50 pt-6">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center">
-            <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mr-3 animate-pulse"></div>
-            Recent Activity
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50/80 to-cyan-50/80 rounded-2xl border border-blue-100/30 hover:shadow-md transition-all duration-300 group">
-              <span className="text-sm text-blue-700 font-medium">This Month</span>
-              <span className="font-bold text-blue-800 group-hover:scale-110 transition-transform duration-300">12 purchases</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 rounded-2xl border border-green-100/30 hover:shadow-md transition-all duration-300 group">
-              <span className="text-sm text-green-700 font-medium">Total Spent</span>
-              <span className="font-bold text-green-800 group-hover:scale-110 transition-transform duration-300">$2,847</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-yellow-50/80 to-orange-50/80 rounded-2xl border border-yellow-100/30 hover:shadow-md transition-all duration-300 group">
-              <span className="text-sm text-orange-700 font-medium">Avg Rating</span>
-              <span className="font-bold text-orange-800 flex items-center group-hover:scale-110 transition-transform duration-300">
-                ⭐ 4.8
-              </span>
+        {user.totalSpent !== undefined && (
+          <div className="border-t border-gray-100/50 pt-6">
+            <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center">
+              <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mr-3 animate-pulse"></div>
+              Purchase Activity
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50/80 to-cyan-50/80 rounded-2xl border border-blue-100/30 hover:shadow-md transition-all duration-300 group">
+                <span className="text-sm text-blue-700 font-medium">This Month</span>
+                <span className="font-bold text-blue-800 group-hover:scale-110 transition-transform duration-300">
+                  {Math.floor((user.postsCount || 0) / 3)} purchases
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 rounded-2xl border border-green-100/30 hover:shadow-md transition-all duration-300 group">
+                <span className="text-sm text-green-700 font-medium">Total Spent</span>
+                <span className="font-bold text-green-800 group-hover:scale-110 transition-transform duration-300">
+                  {formatCurrency(user.totalSpent || 0)}
+                </span>
+              </div>
+              
+              {user.avgRating && (
+                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-yellow-50/80 to-orange-50/80 rounded-2xl border border-yellow-100/30 hover:shadow-md transition-all duration-300 group">
+                  <span className="text-sm text-orange-700 font-medium">Avg Rating</span>
+                  <span className="font-bold text-orange-800 flex items-center group-hover:scale-110 transition-transform duration-300">
+                    ⭐ {user.avgRating.toFixed(1)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
