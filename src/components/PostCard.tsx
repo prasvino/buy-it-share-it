@@ -1,22 +1,47 @@
 
-import { Heart, MessageCircle, Repeat, Share, MoreHorizontal, ExternalLink, Zap, Star, Award, Play } from "lucide-react";
-import { useLikePost, useRepostPost } from "@/lib/api";
+import { useState } from "react";
+import { Star, MessageCircle, Repeat, Share, MoreHorizontal, ExternalLink, Zap, Award, Play } from "lucide-react";
+import { useLikePost, useRepostPost, useCurrentUser } from "@/lib/api";
 import { Post } from "@/lib/api";
+import CommentsModal from "./CommentsModal";
+import ShareModal from "./ShareModal";
+import { toast } from "sonner";
 
 interface PostCardProps {
   post: Post;
 }
 
 const PostCard = ({ post }: PostCardProps) => {
+  const [showComments, setShowComments] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  
+  const { data: currentUser } = useCurrentUser();
   const likePostMutation = useLikePost();
   const repostPostMutation = useRepostPost();
 
   const handleLike = () => {
+    if (!currentUser) {
+      toast.error("Please login to like posts");
+      return;
+    }
+    console.log('Like clicked:', { postId: post.id, currentLiked: post.isLiked, currentCount: post.likes });
     likePostMutation.mutate(post.id);
   };
 
   const handleRepost = () => {
+    if (!currentUser) {
+      toast.error("Please login to repost");
+      return;
+    }
     repostPostMutation.mutate(post.id);
+  };
+
+  const handleComment = () => {
+    setShowComments(true);
+  };
+
+  const handleShare = () => {
+    setShowShare(true);
   };
 
   const formatPrice = (price: number, currency: string) => {
@@ -168,15 +193,22 @@ const PostCard = ({ post }: PostCardProps) => {
             disabled={likePostMutation.isPending}
             className={`flex items-center space-x-3 px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 ${
               post.isLiked 
-                ? 'text-red-500 bg-red-50 hover:bg-red-100 shadow-lg shadow-red-100' 
-                : 'text-gray-500 hover:text-red-500 hover:bg-red-50 hover:shadow-lg hover:shadow-red-100'
+                ? 'text-amber-500 bg-amber-50 hover:bg-amber-100 shadow-lg shadow-amber-100' 
+                : 'text-gray-500 hover:text-amber-500 hover:bg-amber-50 hover:shadow-lg hover:shadow-amber-100'
             }`}
           >
-            <Heart className={`w-5 h-5 transition-all duration-300 ${post.isLiked ? 'fill-current scale-125' : 'hover:scale-125'}`} />
+            <Star className={`w-5 h-5 transition-all duration-300 ${
+              post.isLiked 
+                ? 'fill-amber-500 text-amber-500 scale-125 drop-shadow-sm' 
+                : 'hover:scale-125'
+            }`} />
             <span className="font-semibold">{post.likes}</span>
           </button>
 
-          <button className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-100">
+          <button
+            onClick={handleComment}
+            className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-100"
+          >
             <MessageCircle className="w-5 h-5 hover:scale-125 transition-transform duration-300" />
             <span className="font-semibold">{post.comments}</span>
           </button>
@@ -194,11 +226,27 @@ const PostCard = ({ post }: PostCardProps) => {
             <span className="font-semibold">{post.reposts}</span>
           </button>
 
-          <button className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-100">
+          <button
+            onClick={handleShare}
+            className="flex items-center space-x-3 px-6 py-3 rounded-2xl text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-100"
+          >
             <Share className="w-5 h-5 hover:scale-125 transition-transform duration-300" />
           </button>
         </div>
       </div>
+      
+      {/* Modals */}
+      <CommentsModal 
+        post={post}
+        open={showComments}
+        onOpenChange={setShowComments}
+      />
+      
+      <ShareModal 
+        post={post}
+        open={showShare}
+        onOpenChange={setShowShare}
+      />
     </div>
   );
 };

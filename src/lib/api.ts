@@ -29,6 +29,15 @@ export interface Platform {
   color: string;
 }
 
+export interface Comment {
+  id: string;
+  user: User;
+  content: string;
+  timestamp: string;
+  likes: number;
+  isLiked: boolean;
+}
+
 export interface Post {
   id: string;
   user: User;
@@ -79,6 +88,28 @@ export interface Stats {
   totalPosts: number;
   totalMoneySpent: number;
   activeUsers: number;
+}
+
+export interface ShareData {
+  url: string;
+  title: string;
+  text: string;
+}
+
+export interface SearchParams {
+  keyword?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface SearchResponse {
+  posts: Post[];
+  total: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+  keyword?: string;
+  error?: string;
 }
 
 // API Client
@@ -167,6 +198,24 @@ class ApiClient {
     });
   }
 
+  // Comments API
+  async getPostComments(postId: string, page: number = 1, limit: number = 20): Promise<{ comments: Comment[]; total: number }> {
+    return this.request<{ comments: Comment[]; total: number }>(`/posts/${postId}/comments?page=${page}&limit=${limit}`);
+  }
+
+  async createComment(postId: string, content: string): Promise<Comment> {
+    return this.request<Comment>(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text: content }),
+    });
+  }
+
+  async likeComment(commentId: string): Promise<{ liked: boolean; likesCount: number }> {
+    return this.request<{ liked: boolean; likesCount: number }>(`/comments/${commentId}/like`, {
+      method: 'POST',
+    });
+  }
+
   // User API
   async getCurrentUser(): Promise<User> {
     // return this.request<User>('/users/me');
@@ -195,6 +244,20 @@ class ApiClient {
   // Platforms API
   async getPlatforms(): Promise<Platform[]> {
     return this.request<Platform[]>('/platforms');
+  }
+
+  // Search API
+  async searchPosts(params: SearchParams = {}): Promise<SearchResponse> {
+    const searchParams = new URLSearchParams({
+      page: (params.page || 0).toString(),
+      size: (params.size || 10).toString()
+    });
+    
+    if (params.keyword && params.keyword.trim().length >= 2) {
+      searchParams.append('keyword', params.keyword.trim());
+    }
+    
+    return this.request<SearchResponse>(`/posts/search?${searchParams}`);
   }
 
   // Auth API
@@ -250,6 +313,15 @@ export const usePosts = (page: number = 1, limit: number = 10) => {
   });
 };
 
+export const useSearchPosts = (params: SearchParams) => {
+  return useQuery({
+    queryKey: ['posts', 'search', params.keyword, params.page, params.size],
+    queryFn: () => apiClient.searchPosts(params),
+    enabled: !params.keyword || params.keyword.length >= 2,
+    staleTime: 2 * 60 * 1000, // 2 minutes for search results
+  });
+};
+
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
   
@@ -266,8 +338,94 @@ export const useLikePost = () => {
   
   return useMutation({
     mutationFn: (postId: string) => apiClient.likePost(postId),
-    onSuccess: (_, postId) => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    onMutate: async (postId: string) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+      
+      // Snapshot the previous value
+      const previousPosts = queryClient.getQueriesData({ queryKey: ['posts'] });
+      
+      // Get current post state for debugging and logic
+      const currentPostsData = queryClient.getQueryData(['posts', 1, 10]) as any;
+      const currentPost = currentPostsData?.posts?.find((p: Post) => p.id === postId);
+      const originalIsLiked = currentPost?.isLiked || false;
+      const originalLikes = currentPost?.likes || 0;
+      
+      console.log('Optimistic update - before:', { 
+        postId, 
+        originalIsLiked, 
+        originalLikes 
+      });
+      
+      // Optimistically update to the new value
+      queryClient.setQueriesData(
+        { queryKey: ['posts'] },
+        (old: any) => {
+          if (!old) return old;
+          
+          return {
+            ...old,
+            posts: old.posts.map((post: Post) => {
+              if (post.id === postId) {
+                const newPost = {
+                  ...post,
+                  isLiked: !originalIsLiked,
+                  likes: originalIsLiked ? originalLikes - 1 : originalLikes + 1
+                };
+                console.log('Optimistic update - after:', { 
+                  postId, 
+                  newLiked: newPost.isLiked, 
+                  newLikes: newPost.likes,
+                  wasLiked: originalIsLiked
+                });
+                return newPost;
+              }
+              return post;
+            })
+          };
+        }
+      );
+      
+      // Return a context object with the snapshotted value
+      return { previousPosts, originalIsLiked };
+    },
+    onSuccess: (response, postId) => {
+      console.log('Server response:', { postId, response });
+      // Update with server response to ensure accuracy
+      queryClient.setQueriesData(
+        { queryKey: ['posts'] },
+        (old: any) => {
+          if (!old) return old;
+          
+          return {
+            ...old,
+            posts: old.posts.map((post: Post) => {
+              if (post.id === postId) {
+                const updatedPost = {
+                  ...post,
+                  isLiked: response.liked,
+                  likes: response.likesCount
+                };
+                console.log('Server update applied:', { 
+                  postId, 
+                  serverLiked: response.liked, 
+                  serverCount: response.likesCount 
+                });
+                return updatedPost;
+              }
+              return post;
+            })
+          };
+        }
+      );
+    },
+    onError: (err, postId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousPosts) {
+        context.previousPosts.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
     },
   });
 };
@@ -379,6 +537,79 @@ export const useLogout = () => {
     onSuccess: () => {
       // Clear all cached data
       queryClient.clear();
+    },
+  });
+};
+
+// Comments hooks
+export const usePostComments = (postId: string, page: number = 1, limit: number = 20) => {
+  return useQuery({
+    queryKey: ['comments', postId, page, limit],
+    queryFn: () => apiClient.getPostComments(postId, page, limit),
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCreateComment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ postId, content }: { postId: string; content: string }) => 
+      apiClient.createComment(postId, content),
+    onSuccess: (_, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
+};
+
+export const useLikeComment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (commentId: string) => apiClient.likeComment(commentId),
+    onMutate: async (commentId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['comments'] });
+      
+      // Snapshot the previous value
+      const previousComments = queryClient.getQueriesData({ queryKey: ['comments'] });
+      
+      // Optimistically update comment likes
+      queryClient.setQueriesData(
+        { queryKey: ['comments'] },
+        (old: any) => {
+          if (!old) return old;
+          
+          return {
+            ...old,
+            comments: old.comments.map((comment: Comment) => {
+              if (comment.id === commentId) {
+                return {
+                  ...comment,
+                  isLiked: !comment.isLiked,
+                  likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
+                };
+              }
+              return comment;
+            })
+          };
+        }
+      );
+      
+      return { previousComments };
+    },
+    onError: (err, commentId, context) => {
+      // Roll back on error
+      if (context?.previousComments) {
+        context.previousComments.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments'] });
     },
   });
 };

@@ -1,8 +1,10 @@
 
 import { useState } from "react";
 import { Search, Bell, MessageCircle, Plus, Sparkles, ShoppingBag, Menu, LogOut, User, Settings } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCurrentUser, useLogout } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import SearchBar from "./SearchBar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +14,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const logoutMutation = useLogout();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if we're on the search page
+  const isOnSearchPage = location.pathname === '/search';
+
+  const handleSearch = (keyword: string) => {
+    // Navigate to search page with keyword
+    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  };
+
+  const handleSelectPost = (post: any) => {
+    // Navigate to search page with the post's content as keyword
+    const keyword = post.content.slice(0, 50);
+    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  };
+
+  const handleLogoClick = () => {
+    navigate('/');
+  };
 
   const handleLogout = async () => {
     try {
@@ -40,40 +61,38 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo & Brand */}
           <div className="flex items-center space-x-4">
-            <div className="relative group">
+            <button 
+              onClick={handleLogoClick}
+              className="relative group cursor-pointer"
+            >
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-3xl flex items-center justify-center shadow-xl transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
                 <ShoppingBag className="w-6 h-6 text-white" />
               </div>
               <div className="absolute -inset-1 bg-gradient-to-br from-blue-600 to-pink-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-            </div>
+            </button>
             <div className="hidden sm:block">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-                PurchaseShare
-              </h1>
-              <p className="text-xs text-gray-500 font-medium">Share • Discover • Shop</p>
+              <button onClick={handleLogoClick} className="text-left hover:opacity-80 transition-opacity">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+                  PurchaseShare
+                </h1>
+                <p className="text-xs text-gray-500 font-medium">Share • Discover • Shop</p>
+              </button>
             </div>
           </div>
 
           {/* Enhanced Search Bar */}
           <div className="flex-1 max-w-xl mx-6 sm:mx-8">
-            <div className={`relative transition-all duration-300 ${isSearchFocused ? 'transform scale-105' : ''}`}>
+            <div className={`transition-all duration-300 ${isSearchFocused ? 'transform scale-105' : ''}`}>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-3xl blur-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               <div className="relative">
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 transition-colors duration-200" />
-                <input
-                  type="text"
+                <SearchBar
+                  onSearch={handleSearch}
+                  onSelectPost={handleSelectPost}
                   placeholder="Search products, brands, or users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="w-full pl-14 pr-6 py-4 bg-gray-50/80 border border-gray-200/50 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400/50 transition-all duration-300 text-sm placeholder:text-gray-500 hover:bg-white/80"
+                  className="w-full"
+                  showSuggestions={!isOnSearchPage} // Hide suggestions on search page to avoid conflicts
+                  autoFocus={false}
                 />
-                {searchQuery && (
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <Sparkles className="w-4 h-4 text-blue-500 animate-pulse" />
-                  </div>
-                )}
               </div>
             </div>
           </div>
