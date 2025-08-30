@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { Heart, Send, Loader2, Star } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +26,81 @@ interface CommentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Move CommentItem outside and memoize it to prevent unnecessary re-renders
+const CommentItem = memo(({ 
+  comment, 
+  onLike, 
+  liking, 
+  currentUser 
+}: { 
+  comment: Comment;
+  onLike: (commentId: string) => void;
+  liking: boolean;
+  currentUser: any;
+}) => {
+  const formatTimestamp = useCallback((timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      return `${diffInMinutes}m`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d`;
+    }
+  }, []);
+
+  return (
+    <div className="flex space-x-3 p-4 hover:bg-gray-50/50 transition-colors duration-200">
+      <Avatar className="w-8 h-8 flex-shrink-0">
+        <AvatarImage
+          src={comment.user.avatar}
+          alt={comment.user.name}
+        />
+        <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center space-x-2 mb-1">
+          <span className="font-semibold text-sm text-gray-900">{comment.user.name}</span>
+          <span className="text-xs text-gray-500">@{comment.user.username}</span>
+          <span className="text-xs text-gray-500">·</span>
+          <span className="text-xs text-gray-500">{formatTimestamp(comment.timestamp)}</span>
+        </div>
+        
+        <p className="text-sm text-gray-800 leading-relaxed mb-2">{comment.content}</p>
+        
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => onLike(comment.id)}
+            disabled={liking || !currentUser}
+            className={`flex items-center space-x-1 transition-all duration-200 ${
+              comment.isLiked 
+                ? 'text-amber-500' 
+                : 'text-gray-500 hover:text-amber-500'
+            }`}
+          >
+            <Star className={`w-4 h-4 ${
+              comment.isLiked 
+                ? 'fill-amber-500 text-amber-500' 
+                : ''
+            }`} />
+            {comment.likes > 0 && (
+              <span className="text-xs font-medium">{comment.likes}</span>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+CommentItem.displayName = 'CommentItem';
 
 const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
   const [newComment, setNewComment] = useState("");
@@ -60,67 +135,8 @@ const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
     likeCommentMutation.mutate(commentId);
   }, [currentUser, likeCommentMutation]);
 
-  const formatTimestamp = useCallback((timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      return `${diffInMinutes}m`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d`;
-    }
-  }, []);
-
-  const CommentItem = useCallback(({ comment }: { comment: Comment }) => (
-    <div className="flex space-x-3 p-4 hover:bg-gray-50/50 transition-colors duration-200">
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarImage
-          src={comment.user.avatar}
-          alt={comment.user.name}
-        />
-        <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
-      </Avatar>
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2 mb-1">
-          <span className="font-semibold text-sm text-gray-900">{comment.user.name}</span>
-          <span className="text-xs text-gray-500">@{comment.user.username}</span>
-          <span className="text-xs text-gray-500">·</span>
-          <span className="text-xs text-gray-500">{formatTimestamp(comment.timestamp)}</span>
-        </div>
-        
-        <p className="text-sm text-gray-800 leading-relaxed mb-2">{comment.content}</p>
-        
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => handleLikeComment(comment.id)}
-            disabled={likeCommentMutation.isPending || !currentUser}
-            className={`flex items-center space-x-1 transition-all duration-200 ${
-              comment.isLiked 
-                ? 'text-amber-500' 
-                : 'text-gray-500 hover:text-amber-500'
-            }`}
-          >
-            <Star className={`w-4 h-4 ${
-              comment.isLiked 
-                ? 'fill-amber-500 text-amber-500' 
-                : ''
-            }`} />
-            {comment.likes > 0 && (
-              <span className="text-xs font-medium">{comment.likes}</span>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  ), [formatTimestamp, handleLikeComment, likeCommentMutation.isPending, currentUser]);
-
-  const CommentsContent = useCallback(() => (
+  // Memoize the comments content to prevent unnecessary re-renders
+  const CommentsContent = useMemo(() => (
     <div className="flex flex-col h-full max-h-[80vh]">
       {/* Post Info */}
       <div className="flex-shrink-0 p-4 border-b bg-gray-50/50">
@@ -156,7 +172,13 @@ const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
             </div>
           ) : (
             commentsData?.comments.map((comment) => (
-              <CommentItem key={comment.id} comment={comment} />
+              <CommentItem 
+                key={comment.id} 
+                comment={comment} 
+                onLike={handleLikeComment}
+                liking={likeCommentMutation.isPending}
+                currentUser={currentUser}
+              />
             ))
           )}
         </div>
@@ -211,7 +233,7 @@ const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
         </div>
       )}
     </div>
-  ), [isLoading, commentsData, post, currentUser, newComment, createCommentMutation.isPending, handleSubmitComment, CommentItem]);
+  ), [isLoading, commentsData, post, currentUser, newComment, createCommentMutation.isPending, handleSubmitComment, handleLikeComment, likeCommentMutation.isPending]);
 
   if (isMobile) {
     return (
@@ -220,7 +242,7 @@ const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Comments ({post.comments})</SheetTitle>
           </SheetHeader>
-          <CommentsContent />
+          {CommentsContent}
         </SheetContent>
       </Sheet>
     );
@@ -232,7 +254,7 @@ const CommentsModal = ({ post, open, onOpenChange }: CommentsModalProps) => {
         <DialogHeader className="p-4 border-b">
           <DialogTitle>Comments ({post.comments})</DialogTitle>
         </DialogHeader>
-        <CommentsContent />
+        {CommentsContent}
       </DialogContent>
     </Dialog>
   );

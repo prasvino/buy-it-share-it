@@ -66,9 +66,6 @@ export interface CreatePostRequest {
   productUrl?: string;
   mediaIds?: string[];
   visibility: 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
-  // Legacy fields for backward compatibility
-  media?: string;
-  mediaType?: 'image' | 'video';
   location?: string;
   tags?: string[];
 }
@@ -187,9 +184,21 @@ class ApiClient {
   }
 
   async likePost(postId: string): Promise<{ liked: boolean; likesCount: number }> {
-    return this.request<{ liked: boolean; likesCount: number }>(`/posts/${postId}/like`, {
+    console.log('API: Sending like/unlike request for post:', postId);
+    console.log('API: Request URL:', `${this.baseUrl}/posts/${postId}/like`);
+    
+    const response = await this.request<{ liked: boolean; likesCount: number }>(`/posts/${postId}/like`, {
       method: 'POST',
     });
+    
+    console.log('API: Like/unlike response received:', {
+      postId,
+      liked: response.liked,
+      likesCount: response.likesCount,
+      action: response.liked ? 'liked' : 'unliked'
+    });
+    
+    return response;
   }
 
   async repostPost(postId: string): Promise<{ reposted: boolean; repostsCount: number }> {
@@ -211,9 +220,12 @@ class ApiClient {
   }
 
   async likeComment(commentId: string): Promise<{ liked: boolean; likesCount: number }> {
-    return this.request<{ liked: boolean; likesCount: number }>(`/comments/${commentId}/like`, {
+    console.log('API: Sending like request for comment:', commentId);
+    const response = await this.request<{ liked: boolean; likesCount: number }>(`/comments/${commentId}/like`, {
       method: 'POST',
     });
+    console.log('API: Comment like response received:', response);
+    return response;
   }
 
   // User API
@@ -258,6 +270,22 @@ class ApiClient {
     }
     
     return this.request<SearchResponse>(`/posts/search?${searchParams}`);
+  }
+
+  // Media Upload API - Presigned Upload Flow
+  async requestSasUpload(file: File): Promise<{ uploadUrl: string; fileUrl: string; mediaId: string }> {
+    const requestData = {
+      fileName: file.name,
+      fileType: file.type,
+      size: file.size
+    };
+    
+    console.log('Requesting SAS upload for:', requestData);
+    
+    return this.request<{ uploadUrl: string; fileUrl: string; mediaId: string }>('/api/v1/media/sas', {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    });
   }
 
   // Auth API
@@ -338,94 +366,52 @@ export const useLikePost = () => {
   
   return useMutation({
     mutationFn: (postId: string) => apiClient.likePost(postId),
-    onMutate: async (postId: string) => {
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
-      
-      // Snapshot the previous value
-      const previousPosts = queryClient.getQueriesData({ queryKey: ['posts'] });
-      
-      // Get current post state for debugging and logic
-      const currentPostsData = queryClient.getQueryData(['posts', 1, 10]) as any;
-      const currentPost = currentPostsData?.posts?.find((p: Post) => p.id === postId);
-      const originalIsLiked = currentPost?.isLiked || false;
-      const originalLikes = currentPost?.likes || 0;
-      
-      console.log('Optimistic update - before:', { 
+    onSuccess: (response, postId) => {
+      console.log('Like mutation success:', { 
         postId, 
-        originalIsLiked, 
-        originalLikes 
+        serverResponse: response,
+        newState: response.liked ? 'LIKED' : 'UNLIKED',
+        newCount: response.likesCount
       });
       
-      // Optimistically update to the new value
+      // Update all posts queries with the authoritative server response
       queryClient.setQueriesData(
         { queryKey: ['posts'] },
         (old: any) => {
-          if (!old) return old;
+          if (!old || !old.posts) return old;
           
-          return {
+          const updated = {
             ...old,
             posts: old.posts.map((post: Post) => {
               if (post.id === postId) {
-                const newPost = {
-                  ...post,
-                  isLiked: !originalIsLiked,
-                  likes: originalIsLiked ? originalLikes - 1 : originalLikes + 1
-                };
-                console.log('Optimistic update - after:', { 
-                  postId, 
-                  newLiked: newPost.isLiked, 
-                  newLikes: newPost.likes,
-                  wasLiked: originalIsLiked
-                });
-                return newPost;
-              }
-              return post;
-            })
-          };
-        }
-      );
-      
-      // Return a context object with the snapshotted value
-      return { previousPosts, originalIsLiked };
-    },
-    onSuccess: (response, postId) => {
-      console.log('Server response:', { postId, response });
-      // Update with server response to ensure accuracy
-      queryClient.setQueriesData(
-        { queryKey: ['posts'] },
-        (old: any) => {
-          if (!old) return old;
-          
-          return {
-            ...old,
-            posts: old.posts.map((post: Post) => {
-              if (post.id === postId) {
+                const previousState = { isLiked: post.isLiked, likes: post.likes };
                 const updatedPost = {
                   ...post,
                   isLiked: response.liked,
                   likes: response.likesCount
                 };
-                console.log('Server update applied:', { 
-                  postId, 
-                  serverLiked: response.liked, 
-                  serverCount: response.likesCount 
+                
+                console.log('Post state updated:', {
+                  postId,
+                  previousState,
+                  newState: { isLiked: updatedPost.isLiked, likes: updatedPost.likes },
+                  serverResponse: response
                 });
+                
                 return updatedPost;
               }
               return post;
             })
           };
+          
+          return updated;
         }
       );
     },
-    onError: (err, postId, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousPosts) {
-        context.previousPosts.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
+    onError: (err, postId) => {
+      console.error('Like post error:', { postId, error: err });
+      // Invalidate queries to refresh from server on error
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 };
@@ -569,46 +555,40 @@ export const useLikeComment = () => {
   
   return useMutation({
     mutationFn: (commentId: string) => apiClient.likeComment(commentId),
-    onMutate: async (commentId: string) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['comments'] });
+    onSuccess: (response, commentId) => {
+      console.log('Comment server response received:', { commentId, response });
       
-      // Snapshot the previous value
-      const previousComments = queryClient.getQueriesData({ queryKey: ['comments'] });
-      
-      // Optimistically update comment likes
+      // Update all comments queries with the authoritative server response
       queryClient.setQueriesData(
         { queryKey: ['comments'] },
         (old: any) => {
-          if (!old) return old;
+          if (!old || !old.comments) return old;
           
           return {
             ...old,
             comments: old.comments.map((comment: Comment) => {
               if (comment.id === commentId) {
-                return {
+                const updatedComment = {
                   ...comment,
-                  isLiked: !comment.isLiked,
-                  likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
+                  isLiked: response.liked,
+                  likes: response.likesCount
                 };
+                console.log('Updated comment with server data:', { 
+                  commentId, 
+                  serverLiked: response.liked, 
+                  serverCount: response.likesCount 
+                });
+                return updatedComment;
               }
               return comment;
             })
           };
         }
       );
-      
-      return { previousComments };
     },
-    onError: (err, commentId, context) => {
-      // Roll back on error
-      if (context?.previousComments) {
-        context.previousComments.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-    },
-    onSettled: () => {
+    onError: (err, commentId) => {
+      console.error('Like comment error:', err);
+      // Invalidate queries to refresh from server on error
       queryClient.invalidateQueries({ queryKey: ['comments'] });
     },
   });

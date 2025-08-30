@@ -5,6 +5,7 @@ import { useCreatePost, usePlatforms } from "@/lib/api";
 import { CreatePostRequest, Platform } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useMediaUpload } from "@/hooks/use-media-upload";
 
 const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [postContent, setPostContent] = useState("");
@@ -25,6 +26,7 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   const { data: platforms, isLoading: platformsLoading } = usePlatforms();
   const createPostMutation = useCreatePost();
+  const { uploadSingleFile, uploading: isUploading, uploadProgress, validateFile, formatFileSize } = useMediaUpload();
   const { toast } = useToast();
 
   // Cleanup media URL on unmount to prevent memory leaks
@@ -71,6 +73,25 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
     }
 
     try {
+      let mediaIds: string[] = [];
+      
+      // Step 1: Upload media first if exists (using Azure SAS upload)
+      if (mediaFile) {
+        toast({
+          title: "Uploading media...",
+          description: "Please wait while we upload your photo/video to Azure cloud storage.",
+        });
+        
+        const uploadResult = await uploadSingleFile(mediaFile);
+        mediaIds = [uploadResult.mediaId];
+        
+        toast({
+          title: "Media uploaded successfully!",
+          description: "Now creating your post...",
+        });
+      }
+      
+      // Step 2: Create post with media IDs
       const postData: CreatePostRequest = {
         text: postContent.trim(), // Backend expects 'text' field
         platformId: selectedPlatform || null,
@@ -79,10 +100,7 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
         purchaseDate: purchaseDate || new Date().toISOString().split('T')[0], // Use today if not specified
         productUrl: productUrl.trim() || undefined,
         visibility: visibility,
-        mediaIds: [], // TODO: Handle media upload to get actual media IDs
-        // Legacy fields for backward compatibility
-        media: media || undefined,
-        mediaType: mediaType || undefined,
+        mediaIds: mediaIds, // Now contains actual media IDs from Azure SAS upload
         location: location.trim() || undefined,
         tags: tagsList.length > 0 ? tagsList : (tags.trim() ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : undefined),
       };
@@ -123,9 +141,31 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
         onSuccess();
       }
     } catch (error) {
+      console.error('Post creation error:', error);
+      
+      // Show appropriate error message based on error type
+      let errorMessage = "Please try again later.";
+      if (error instanceof Error) {
+        if (error.message.includes('Authentication') || error.message.includes('login again')) {
+          errorMessage = "Please login again to continue.";
+        } else if (error.message.includes('File too large')) {
+          errorMessage = "File is too large. Please select a smaller file (max 10MB).";
+        } else if (error.message.includes('Unsupported file type') || error.message.includes('File type not supported')) {
+          errorMessage = "File type not supported. Please select an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, OGG) file.";
+        } else if (error.message.includes('Azure upload failed') || error.message.includes('Upload failed')) {
+          errorMessage = "Failed to upload media to Azure cloud storage. Please check your internet connection and try again.";
+        } else if (error.message.includes('SAS') || error.message.includes('Invalid file metadata')) {
+          errorMessage = "Failed to prepare file upload. Please try again.";
+        } else if (error.message.includes('Network error') || error.message.includes('timeout')) {
+          errorMessage = "Network connection issue. Please check your internet and try again.";
+        } else if (error.message.includes('MIME type')) {
+          errorMessage = "File appears to be corrupted or has mismatched file extension. Please try a different file.";
+        }
+      }
+      
       toast({
-        title: "Failed to create post",
-        description: "Please try again later.",
+        title: mediaFile ? "Failed to upload media or create post" : "Failed to create post",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -134,43 +174,40 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
+      try {
+        // Validate file using the new validation function
+        validateFile(file);
+        
+        // Clean up previous media URL
+        if (media && media.startsWith('blob:')) {
+          URL.revokeObjectURL(media);
+        }
+
+        // Create new URL and set media
+        const url = URL.createObjectURL(file);
+        setMedia(url);
+        setMediaFile(file);
+        setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+        
         toast({
-          title: "File too large",
-          description: "Please select a file smaller than 10MB",
-          variant: "destructive",
+          title: "Media selected",
+          description: `${file.type.startsWith('video/') ? 'Video' : 'Image'} ready to upload! (${formatFileSize(file.size)})`,
         });
-        return;
+      } catch (error) {
+        // Handle validation errors
+        if (error instanceof Error) {
+          toast({
+            title: "Invalid file",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
-
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg'];
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, OGG) file",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Clean up previous media URL
-      if (media && media.startsWith('blob:')) {
-        URL.revokeObjectURL(media);
-      }
-
-      // Create new URL and set media
-      const url = URL.createObjectURL(file);
-      setMedia(url);
-      setMediaFile(file);
-      setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
-      
-      toast({
-        title: "Media uploaded",
-        description: `${file.type.startsWith('video/') ? 'Video' : 'Image'} ready to share!`,
-      });
     }
   };
 
@@ -327,6 +364,31 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Upload Progress Indicator */}
+        {isUploading && mediaFile && (
+          <div className="mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-800">Uploading {mediaFile.name}</p>
+                  <p className="text-xs text-blue-600">Uploading to Azure cloud storage...</p>
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress[mediaFile.name] || 0}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                {uploadProgress[mediaFile.name] || 0}% complete
+              </p>
             </div>
           </div>
         )}
@@ -598,18 +660,23 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
         {/* Enhanced Action Buttons */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100/50">
           <div className="flex items-center space-x-1 overflow-x-auto">
-            <label className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-2xl transition-all duration-300 flex-shrink-0 group hover:shadow-md cursor-pointer">
+            <label className={`flex items-center space-x-2 text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-2xl transition-all duration-300 flex-shrink-0 group hover:shadow-md ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*,video/*"
                 onChange={handleMediaUpload}
+                disabled={isUploading}
                 className="hidden"
                 id="media-upload"
               />
-              <Camera className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+              {isUploading ? (
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Camera className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+              )}
               <span className="text-sm font-medium hidden sm:inline">
-                {media ? 'Change Media' : 'Photo/Video'}
+                {isUploading ? 'Uploading...' : (media ? 'Change Media' : 'Photo/Video')}
               </span>
             </label>
             
@@ -647,15 +714,20 @@ const CreatePost = ({ onSuccess }: { onSuccess?: () => void }) => {
           {/* Enhanced Share Button */}
           <Button
             type="submit"
-            disabled={createPostMutation.isPending}
+            disabled={createPostMutation.isPending || isUploading}
             className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl font-semibold overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10 flex items-center space-x-2">
-              {createPostMutation.isPending ? (
+              {isUploading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating...</span>
+                  <span>Uploading to Azure Cloud...</span>
+                </>
+              ) : createPostMutation.isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating Post...</span>
                 </>
               ) : (
                 <>

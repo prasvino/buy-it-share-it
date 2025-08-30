@@ -24,7 +24,21 @@ const PostCard = ({ post }: PostCardProps) => {
       toast.error("Please login to like posts");
       return;
     }
-    console.log('Like clicked:', { postId: post.id, currentLiked: post.isLiked, currentCount: post.likes });
+    
+    // Prevent multiple rapid clicks
+    if (likePostMutation.isPending) {
+      console.log('Like request already pending, ignoring click');
+      return;
+    }
+    
+    console.log('Like clicked:', { 
+      postId: post.id, 
+      currentLiked: post.isLiked, 
+      currentCount: post.likes,
+      userId: currentUser.id,
+      action: post.isLiked ? 'unlike' : 'like'
+    });
+    
     likePostMutation.mutate(post.id);
   };
 
@@ -190,7 +204,6 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="flex items-center justify-between pt-6 border-t border-gray-50">
           <button
             onClick={handleLike}
-            disabled={likePostMutation.isPending}
             className={`flex items-center space-x-3 px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 ${
               post.isLiked 
                 ? 'text-amber-500 bg-amber-50 hover:bg-amber-100 shadow-lg shadow-amber-100' 
